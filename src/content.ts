@@ -1,4 +1,4 @@
-function injectScript(jsPath) {
+function injectScript(jsPath:string) {
     jsPath = jsPath || 'dist/inpage.js';
     try {
         const container = document.head || document.documentElement;
