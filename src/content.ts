@@ -1,11 +1,15 @@
-import PortDuplexStream from "extension-port-stream";
+function injectScript(jsPath) {
+    jsPath = jsPath || 'dist/inpage.js';
+    try {
+        const container = document.head || document.documentElement;
+        const scriptTag = document.createElement('script');
+        scriptTag.setAttribute('async', 'false');
+        scriptTag.src = chrome.runtime.getURL(jsPath);
+        container.insertBefore(scriptTag, container.children[0]);
+        container.removeChild(scriptTag);
+    } catch (error) {
+        console.error('MetaMask: Provider injection failed.', error);
+    }
+}
 
-const port = chrome.runtime.connect({name: "knockknock"})
-const s = new PortDuplexStream(port)
-
-s.on("data",(data) => {
-    console.log(data)
-    s.write("echo" + data)
-})
-
-
+injectScript("dist/inpage.js")
