@@ -1,31 +1,26 @@
-import * as joyid from "@joyid/evm"
+import * as joyid from "@joyid/evm";
 
-import { getInpageStream } from "./utils"
-
+import { getInpageStream } from "./utils";
 
 joyid.initConfig({
-    // your app name
-    name: 'EVM demo',
-    // your app logo,
-    logo: 'https://fav.farm/🆔',
-    // optional, config for the network you want to connect to
-    network: {
-        chainId: 1,
-        name: 'Ethereum Mainnet',
-    },
-    // optional
-    rpcURL: 'https://cloudflare-eth.com'
-})
+  // your app name
+  name: "EVM demo",
+  // your app logo,
+  logo: "https://fav.farm/🆔",
+  // optional, config for the network you want to connect to
+  network: {
+    chainId: 1,
+    name: "Ethereum Mainnet",
+  },
+  // optional
+  rpcURL: "https://cloudflare-eth.com",
+});
 
 async function connectOnClick() {
-    const address = await joyid.connect()
-    console.log(`Connected with address ${address}`)
-  }
-
-
+  const address = await joyid.connect();
+  console.log(`Connected with address ${address}`);
+}
 
 console.debug("Inject Success, Hello from inpage");
-const stream = getInpageStream()
-stream.on("data",(data) => console.log(data))
-
-
+const stream = getInpageStream();
+stream.on("data", (data) => console.log(data));

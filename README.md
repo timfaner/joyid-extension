@@ -1,14 +1,9 @@
 # joyid-extension
 
+##
 
-## 
+### build
 
-### build 
-
-`
-yarn install 
-`
-then 
-`
-yarn build 
-`
+`yarn install `
+then
+`yarn build `
