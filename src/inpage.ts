@@ -1,5 +1,8 @@
 import * as joyid from "@joyid/evm"
 
+import { getInpageStream } from "./utils"
+
+
 joyid.initConfig({
     // your app name
     name: 'EVM demo',
@@ -19,6 +22,10 @@ async function connectOnClick() {
     console.log(`Connected with address ${address}`)
   }
 
-console.log("Inject Success");
 
-connectOnClick()
+
+console.debug("Inject Success, Hello from inpage");
+const stream = getInpageStream()
+stream.on("data",(data) => console.log(data))
+
+
