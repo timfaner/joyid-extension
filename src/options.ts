@@ -1,5 +1,6 @@
 import { TEMPLATE_FILE_NAME } from "./constant";
 import { StorageData } from "./typed";
+import { EvmConfig } from "@joyid/evm";
 
 document.addEventListener("DOMContentLoaded", function () {
   const developerSwitch = document.getElementById(
@@ -33,6 +34,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   //设置上传按钮
   chainFile.addEventListener("change", function (event) {
+    console.log("upload");
     if (!event || !event.target) return;
     const inputElement = event.target as HTMLInputElement;
     const file = inputElement.files && inputElement.files[0];
@@ -56,8 +58,18 @@ function uploadFile(file: File): void {
   reader.onload = function (e) {
     if (!e.target) return;
     const content = e.target.result as string;
-    chrome.storage.local.set({ chainlists: content });
+
+    try {
+      const joyid_config: EvmConfig = JSON.parse(content);
+
+      //TODO: 使用ajv验证config格式
+      chrome.storage.local.set({ joyid_config: joyid_config });
+    } catch (error) {
+      console.error(error);
+      alert(error);
+    }
   };
+  reader.readAsText(file);
 }
 
 function updateChainSetupVisibility(isChecked: boolean): void {
