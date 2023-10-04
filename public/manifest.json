@@ -7,7 +7,7 @@
     "web_accessible_resources": [
         {
             "resources":["chainlists.json","inpage.js"],
-            "matches":["file:///*","https://*/*"]
+            "matches":["file:///*"]
         }],
     "action": {
       "default_icon": {
