@@ -1,5 +1,5 @@
 function injectScript(jsPath:string) {
-    jsPath = jsPath || 'dist/inpage.js';
+    jsPath = jsPath || 'inpage.js';
     try {
         const container = document.head || document.documentElement;
         const scriptTag = document.createElement('script');
@@ -12,4 +12,4 @@ function injectScript(jsPath:string) {
     }
 }
 
-injectScript("dist/inpage.js")
+injectScript("inpage.js")

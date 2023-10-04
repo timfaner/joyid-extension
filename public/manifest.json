@@ -6,8 +6,8 @@
     "permissions": ["activeTab", "contextMenus","storage"],
     "web_accessible_resources": [
         {
-            "resources":["chainlists.json"],
-            "matches":["file:///*"]
+            "resources":["chainlists.json","inpage.js"],
+            "matches":["file:///*","https://*/*"]
         }],
     "action": {
       "default_icon": {
