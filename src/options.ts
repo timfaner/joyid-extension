@@ -1,8 +1,7 @@
-// 首先，定义可能的存储内容的类型
-interface StorageData {
-  developer?: boolean;
-  chainlists?: string;
-}
+import { TEMPLATE_FILE_NAME } from "./constant";
+import { StorageData } from "./typed";
+
+
 
 document.addEventListener('DOMContentLoaded', function () {
   
@@ -17,9 +16,10 @@ document.addEventListener('DOMContentLoaded', function () {
     updateChainSetupVisibility(data.developer || false);
   });
 
+  // 设置开发者模式按钮状态
   developerSwitch.addEventListener('change', function () {
     const isChecked = this.checked;
-    // 存储developer状态
+    // 存储developer mode 状态
     chrome.storage.local.set({ developer: isChecked });
     updateChainSetupVisibility(isChecked);
   });
@@ -28,31 +28,38 @@ document.addEventListener('DOMContentLoaded', function () {
     chainFile.click();
   });
 
+  //设置上传按钮
   chainFile.addEventListener('change', function(event) {
     if (!event || !event.target) return;
-
     const inputElement = event.target as HTMLInputElement;
     const file = inputElement.files && inputElement.files[0];
+    
     if (!file) return;
+    uploadFile(file);
+    
 
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      if (!e.target) return;
-      const content = e.target.result as string;
-      chrome.storage.local.set({ chainlists: content });
-    };
-    reader.readAsText(file);
+
   });
   
+  // 下载文件
   downloadTemplate.addEventListener('click', function() {
-    var url = chrome.runtime.getURL('chainlists.json');
+    var url = chrome.runtime.getURL(TEMPLATE_FILE_NAME);
     var a = document.createElement('a');
     a.href = url;
-    a.download = 'chainlists.json';
+    a.download = TEMPLATE_FILE_NAME ;
     a.click();
   });
   
 });
+
+function uploadFile(file:File):void{
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    if (!e.target) return;
+    const content = e.target.result as string;
+    chrome.storage.local.set({ chainlists: content });
+  };
+}
 
 function updateChainSetupVisibility(isChecked: boolean): void {
   const chainSetup = document.getElementById('chainSetup')!;

@@ -13,10 +13,12 @@
     "@joyid/evm": "^0.2.0-beta.4",
     "@metamask/post-message-stream": "^7.0.0",
     "extension-port-stream": "^2.1.1",
+    "generate-unique-id": "^2.0.3",
     "process": "^0.11.10"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.197",
+    "@types/readable-stream": "^4.0.3",
     "buffer": "^6.0.3",
     "copy-webpack-plugin": "^11.0.0",
     "stream-browserify": "^3.0.0",
