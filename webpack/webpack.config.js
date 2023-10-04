@@ -8,6 +8,7 @@ module.exports = {
       background: path.resolve(__dirname, "..", "src", "background.ts"),
       content: path.resolve(__dirname, "..", "src", "content.ts"),
       options: path.resolve(__dirname, "..", "src", "options.ts"),
+      inpage:path.resolve(__dirname,"..","src","inpage.ts")
    },
    output: {
       path: path.join(__dirname, "../dist"),

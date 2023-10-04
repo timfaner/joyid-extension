@@ -6,7 +6,7 @@
     "permissions": ["activeTab", "contextMenus","storage"],
     "web_accessible_resources": [
         {
-            "resources":["chainlists.json"],
+            "resources":["chainlists.json","inpage.js"],
             "matches":["file:///*"]
         }],
     "action": {
