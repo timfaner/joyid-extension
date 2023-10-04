@@ -40,6 +40,7 @@ chrome.action.onClicked.addListener(function(tab) {
 
 chrome.runtime.onConnect.addListener( ( port)=> 
     {
+      console.debug("Connect income",port.name)
       if(port.name === CONTENT_STREAM_NAME){
         const portStream = new PortDuplexStream(port)
         registPortStream(portStream)
@@ -49,8 +50,8 @@ chrome.runtime.onConnect.addListener( ( port)=>
 
 
 chrome.storage.onChanged.addListener( (changes) =>{
-  
-  portStreamList.get("")?.write(changes.developer)
+  console.log("11")
+  portStreamList.forEach( (v,k) => v.write(changes.developer))
 })
 
 
@@ -58,20 +59,38 @@ chrome.storage.onChanged.addListener( (changes) =>{
 let portStreamID = "";
 const portStreamList = new Map<string,PortDuplexStream>
 
+
+
+function onClose(portStreamID:string){
+  return () =>{
+    console.debug(`portstream ${portStreamID} closed`)
+    portStreamList.delete(portStreamID) 
+  }
+}
+
+function onError(portStreamID:string){
+  return (err:Error) =>{
+    console.error(err,portStreamID)
+  }
+}
+
+function onData(portStreamID:string){
+  return (data:any) =>{
+    console.log(data,portStreamID)
+  }
+}
 //注册port steam
 function registPortStream( portStream:PortDuplexStream):void{
 
   portStreamID = generateUniqueId()
   portStreamList.set( portStreamID ,portStream);
-  portStream.on("data",(data) => { console.log("origindata");console.log(data)})
 
-  portStream.on("close", () => {
-    console.debug(`portstream ${portStreamID} closed`)
-    portStreamList.delete(portStreamID)
-  })
+  portStream.on("data",onData(portStreamID))
+  portStream.on("close", onClose(portStreamID))
+  portStream.on("error", onError( portStreamID) )
 
-  portStream.on("error", (err) => console.error(err,portStreamID))
-
+  portStream.write(`background connected, your id is ${portStreamID}`)
+  console.debug( `Connect id is ${portStreamID}` )
 }
   
 
