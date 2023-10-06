@@ -21,6 +21,9 @@ async function connectOnClick() {
   console.log(`Connected with address ${address}`);
 }
 
+connectOnClick();
+
 console.debug("Inject Success, Hello from inpage");
+
 const stream = getInpageStream();
 stream.on("data", (data) => console.log(data));
