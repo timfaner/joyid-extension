@@ -1,3 +1,3 @@
 interface Window {
-  abc?: any;
+  ethereum?: any;
 }

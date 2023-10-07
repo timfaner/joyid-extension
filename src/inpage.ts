@@ -4,15 +4,15 @@ import { JoyIdProvider } from "./provider/provider";
 
 let injectProvider = new JoyIdProvider();
 
-if (!window.hasOwnProperty("abc")) {
-  Object.defineProperty(window, "abc", {
-    get() {
-      return injectProvider;
-    },
-  });
-} else {
-  window.abc = injectProvider;
-}
+Object.defineProperty(window, "ethereum", {
+  get() {
+    return injectProvider;
+  },
+  set(newProvider) {
+    return injectProvider;
+  },
+  configurable: true,
+});
 
 console.debug("Inject Success, Hello from inpage");
 

@@ -5,10 +5,6 @@ import { RequestArguments } from "./eip-1193";
 import * as joyid from "@joyid/evm";
 
 export class JoyIdProvider extends EventEmitter {
-  endpointRpc = "https://ethereum.publicnode.com";
-
-  chainId = "0x1";
-
   selectedAddress: string | undefined;
 
   connected = false;
@@ -68,12 +64,8 @@ export class JoyIdProvider extends EventEmitter {
         }
 
       default:
-        return fetch(this.endpointRpc, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ method, params }),
+        return new Promise((resolve, reject) => {
+          reject(`warning: ${method} function is not ready in joyid.`);
         });
     }
   }
