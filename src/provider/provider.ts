@@ -31,6 +31,8 @@ export class JoyIdProvider extends EventEmitter {
     isPermanentlyDisconnected: false,
   };
 
+  isMetaMask: boolean;
+
   #chainId: string | null;
 
   #selectedAddress: string | null;
@@ -39,6 +41,8 @@ export class JoyIdProvider extends EventEmitter {
     super();
 
     joyid.initConfig(config);
+
+    this.isMetaMask = true;
 
     this.#selectedAddress = null;
     this.#chainId = null;
