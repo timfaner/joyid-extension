@@ -10,7 +10,7 @@ import * as joyid from "@joyid/evm";
 
 import dequal from "fast-deep-equal";
 
-import { isValidChainId } from "./utils";
+import { isValidChainId, isValidNetworkVersion } from "./utils";
 
 export type BaseProviderState = {
   accounts: null | string[];
@@ -57,8 +57,8 @@ export class JoyIdProvider extends EventEmitter {
     if (config.network) {
       this._initializeState({
         accounts: [],
-        chainId: (config.network.chainId as number).toString(16),
-        networkVersion: (config.network.chainId as number).toString(10),
+        chainId: "0x" + config.network.chainId.toString(16),
+        networkVersion: config.network.chainId.toString(10),
       });
     } else {
       this._initializeState();
@@ -135,6 +135,11 @@ export class JoyIdProvider extends EventEmitter {
       case "eth_chainId":
         return new Promise<string>((resolve, reject) => {
           resolve(this.#chainId as string);
+        });
+
+      case "net_version":
+        return new Promise<string>((resolve, reject) => {
+          resolve(this.#networkVersion as string);
         });
 
       default:
@@ -240,34 +245,42 @@ export class JoyIdProvider extends EventEmitter {
     }
   }
 
-  /**
-   * Upon receipt of a new `chainId`, emits the corresponding event and sets
-   * and sets relevant public state. Does nothing if the given `chainId` is
-   * equivalent to the existing value.
-   *
-   * Permits the `networkVersion` field in the parameter object for
-   * compatibility with child classes that use this value.
-   *
-   * @fires BaseProvider#chainChanged
-   * @param networkInfo - An object with network info.
-   * @param networkInfo.chainId - The latest chain ID.
-   */
   protected _handleChainChanged({
     chainId,
-  }:
-    | { chainId?: string | undefined; networkVersion?: string | undefined }
-    | undefined = {}) {
-    if (!isValidChainId(chainId)) {
-      console.error(messages.errors.invalidNetworkParams(), { chainId });
+    networkVersion,
+  }: {
+    chainId?: string | undefined;
+    networkVersion?: string | undefined;
+  } = {}) {
+    if (!isValidChainId(chainId) || !isValidNetworkVersion(networkVersion)) {
+      console.error(messages.errors.invalidNetworkParams(), {
+        chainId,
+        networkVersion,
+      });
       return;
     }
 
-    this._handleConnect(chainId);
+    if (networkVersion === "loading") {
+      this._handleDisconnect(true);
+    } else {
+      if (!isValidChainId(chainId)) {
+        console.error(messages.errors.invalidNetworkParams(), { chainId });
+        return;
+      }
 
-    if (chainId !== this.#chainId) {
-      this.#chainId = chainId;
+      this._handleConnect(chainId);
+
+      if (chainId !== this.#chainId) {
+        this.#chainId = chainId;
+        if (this._state.initialized) {
+          this.emit("chainChanged", this.#chainId);
+        }
+      }
+    }
+    if (this._state.isConnected && networkVersion !== this.#networkVersion) {
+      this.#networkVersion = networkVersion as string;
       if (this._state.initialized) {
-        this.emit("chainChanged", this.#chainId);
+        this.emit("networkChanged", this.#networkVersion);
       }
     }
   }
