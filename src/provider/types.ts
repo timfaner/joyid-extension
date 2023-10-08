@@ -35,3 +35,13 @@ export type PortTransport = {
   removeEventListener: PortListener;
   origin: string;
 };
+
+// export type JoyIdConfig = {
+//     name: string,
+//     logo: string,
+//     network:{
+//         chainId: number,
+//         name: string,
+//     },
+//     rpcURL?:string
+// }
