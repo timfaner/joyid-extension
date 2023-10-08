@@ -5,9 +5,11 @@ import { RequestArguments } from "./eip-1193";
 import * as joyid from "@joyid/evm";
 
 export class JoyIdProvider extends EventEmitter {
+  chainId = "0x1";
+
   selectedAddress: string | undefined;
 
-  connected = false;
+  connected = true;
 
   constructor() {
     super();
@@ -62,6 +64,11 @@ export class JoyIdProvider extends EventEmitter {
               });
           });
         }
+
+      case "eth_chainId":
+        return new Promise<string>((resolve, reject) => {
+          resolve(this.chainId);
+        });
 
       default:
         return new Promise((resolve, reject) => {
