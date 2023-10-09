@@ -133,6 +133,20 @@ export class JoyIdProvider extends EventEmitter {
                 case "net_version":
                     return this.#networkVersion;
 
+                case "eth_signTypedData_v3":
+                case "eth_signTypedData_v4":
+                    if (!this.#selectedAddress) {
+                        let addr = await joyid.connect();
+                        if (addr !== this.#selectedAddress) {
+                            this._handleAccountsChanged([addr]);
+                        }
+                    }
+                    let typedDataInput: string = (params as string[])[1];
+                    return await joyid.signTypedData(
+                        JSON.parse(typedDataInput),
+                        this.#selectedAddress as string,
+                    );
+
                 default:
                     return Promise.reject(
                         new EIP1193Error(
