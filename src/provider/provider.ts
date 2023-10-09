@@ -23,11 +23,11 @@ export type BaseProviderState = {
 };
 
 export class JoyIdProvider extends EventEmitter {
-    protected _state: BaseProviderState;
+    _state: BaseProviderState;
 
     #networkVersion: string | null;
 
-    protected static _defaultState: BaseProviderState = {
+    static _defaultState: BaseProviderState = {
         accounts: null,
         isConnected: false,
         initialized: false,
@@ -165,7 +165,7 @@ export class JoyIdProvider extends EventEmitter {
      * @fires BaseProvider#_initialized - If `initialState` is defined.
      * @fires BaseProvider#connect - If `initialState` is defined.
      */
-    protected _initializeState(initialState?: {
+    _initializeState(initialState?: {
         accounts: string[];
         chainId: string;
         networkVersion?: string;
@@ -196,7 +196,7 @@ export class JoyIdProvider extends EventEmitter {
      * @param chainId - The ID of the newly connected chain.
      * @fires JoyIdInpageProvider#connect
      */
-    protected _handleConnect(chainId: string) {
+    _handleConnect(chainId: string) {
         if (!this._state.isConnected) {
             this._state.isConnected = true;
             this.emit("connect", { chainId });
@@ -211,7 +211,7 @@ export class JoyIdProvider extends EventEmitter {
      * Error codes per the CloseEvent status codes as required by EIP-1193:
      * https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent#Status_codes.
      */
-    protected _handleDisconnect(errorMessage?: string) {
+    _handleDisconnect(errorMessage?: string) {
         if (this._state.isConnected) {
             this._state.isConnected = false;
 
@@ -224,7 +224,7 @@ export class JoyIdProvider extends EventEmitter {
         }
     }
 
-    protected _handleChainChanged({
+    _handleChainChanged({
         chainId,
         networkVersion,
     }: {
@@ -277,10 +277,7 @@ export class JoyIdProvider extends EventEmitter {
      * @param isEthAccounts - Whether the accounts value was returned by
      * a call to eth_accounts.
      */
-    protected _handleAccountsChanged(
-        accounts: unknown[],
-        isEthAccounts = false,
-    ): void {
+    _handleAccountsChanged(accounts: unknown[], isEthAccounts = false): void {
         let _accounts = accounts;
 
         if (!Array.isArray(accounts)) {
