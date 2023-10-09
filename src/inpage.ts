@@ -3,29 +3,29 @@ import { getInpageStream } from "./utils";
 import { JoyIdProvider } from "./provider/provider";
 
 let config = {
-  // your app name
-  name: "EVM demo",
-  // your app logo,
-  logo: "https://fav.farm/🆔",
-  // optional, config for the network you want to connect to
-  network: {
-    chainId: 80001,
-    name: "Ethereum Mainnet",
-  },
-  // optional
-  rpcURL: "https://cloudflare-eth.com",
+    // your app name
+    name: "EVM demo",
+    // your app logo,
+    logo: "https://fav.farm/🆔",
+    // optional, config for the network you want to connect to
+    network: {
+        chainId: 80001,
+        name: "Ethereum Mainnet",
+    },
+    // optional
+    rpcURL: "https://cloudflare-eth.com",
 };
 
 let injectProvider = new JoyIdProvider(config);
 
 Object.defineProperty(window, "ethereum", {
-  get() {
-    return injectProvider;
-  },
-  set(newProvider) {
-    return injectProvider;
-  },
-  configurable: true,
+    get() {
+        return injectProvider;
+    },
+    set(newProvider) {
+        return injectProvider;
+    },
+    configurable: true,
 });
 
 console.debug("Inject Success, Hello from inpage");
@@ -45,17 +45,19 @@ console.debug("Inject Success, Hello from inpage");
 // ==/UserScript==
 
 (function () {
-  "use strict";
-  const rubberNeck = {
-    apply: function (tgt: any, thisArg: any, argList: any) {
-      console.log("apply", tgt.name, JSON.stringify(argList, null, 2));
-      return Reflect.apply(tgt, thisArg, argList);
-    },
-  };
-  const ethOrigi = window.ethereum;
+    "use strict";
+    const rubberNeck = {
+        apply: function (tgt: any, thisArg: any, argList: any) {
+            console.log("apply", tgt.name, JSON.stringify(argList, null, 2));
+            return Reflect.apply(tgt, thisArg, argList);
+        },
+    };
+    const ethOrigi = window.ethereum;
 
-  Object.getOwnPropertyNames(ethOrigi)
-    .filter((i) => typeof ethOrigi[i] === "function")
-    .forEach((f) => (window.ethereum[f] = new Proxy(ethOrigi[f], rubberNeck)));
-  // Your code here...
+    Object.getOwnPropertyNames(ethOrigi)
+        .filter((i) => typeof ethOrigi[i] === "function")
+        .forEach(
+            (f) => (window.ethereum[f] = new Proxy(ethOrigi[f], rubberNeck)),
+        );
+    // Your code here...
 })();

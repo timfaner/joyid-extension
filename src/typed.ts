@@ -1,4 +1,4 @@
 export interface StorageData {
-  developer?: boolean;
-  chainlists?: string;
+    developer?: boolean;
+    chainlists?: string;
 }
