@@ -205,7 +205,7 @@ export class JoyIdProvider extends EventEmitter {
      * required events. Idempotent.
      *
      * @param chainId - The ID of the newly connected chain.
-     * @fires MetaMaskInpageProvider#connect
+     * @fires JoyIdInpageProvider#connect
      */
     protected _handleConnect(chainId: string) {
         if (!this._state.isConnected) {
@@ -321,7 +321,7 @@ export class JoyIdProvider extends EventEmitter {
 
         if (!Array.isArray(accounts)) {
             console.error(
-                "MetaMask: Received invalid accounts parameter. Please report this bug.",
+                "JoyId: Received invalid accounts parameter. Please report this bug.",
                 accounts,
             );
             _accounts = [];
@@ -330,7 +330,7 @@ export class JoyIdProvider extends EventEmitter {
         for (const account of accounts) {
             if (typeof account !== "string") {
                 console.error(
-                    "MetaMask: Received non-string account. Please report this bug.",
+                    "JoyId: Received non-string account. Please report this bug.",
                     accounts,
                 );
                 _accounts = [];
@@ -344,7 +344,7 @@ export class JoyIdProvider extends EventEmitter {
             // returns
             if (isEthAccounts && this._state.accounts !== null) {
                 console.error(
-                    `MetaMask: 'eth_accounts' unexpectedly updated accounts. Please report this bug.`,
+                    `JoyId: 'eth_accounts' unexpectedly updated accounts. Please report this bug.`,
                     _accounts,
                 );
             }
