@@ -1,5 +1,3 @@
-import { WindowResponseEvent } from "./types";
-
 import { RequestArguments } from "./eip-1193";
 
 export function getType(arg: unknown): string {
@@ -28,26 +26,8 @@ export function isNumber(arg: unknown): arg is number {
     return getType(arg) === "Number";
 }
 
-export function isMessageEvent(arg: unknown): arg is MessageEvent {
-    return arg instanceof MessageEvent;
-}
-
 export function isRPCRequestParamsType(
     arg: unknown,
 ): arg is RequestArguments["params"] {
     return isObject(arg) || isArray(arg);
-}
-
-export function isWindowResponseEvent(
-    arg: unknown,
-): arg is WindowResponseEvent {
-    return (
-        isMessageEvent(arg) &&
-        isString(arg.origin) &&
-        !isUndefined(arg.source) &&
-        isObject(arg.data) &&
-        isString(arg.data.id) &&
-        isString(arg.data.target) &&
-        !isUndefined(arg.data.result)
-    );
 }
