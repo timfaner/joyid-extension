@@ -1,15 +1,12 @@
 import { EventEmitter } from "events";
 
-import { ethers, hexlify, toUtf8Bytes } from "ethers";
+import { hexlify, toUtf8Bytes, getBytes } from "ethers";
 
 import {
     RequestArguments,
     EIP1193Error,
     EIP1193_ERROR_CODES,
-    isEIP1193Error,
 } from "./eip-1193";
-
-import { rpcErrors, JsonRpcError } from "@metamask/rpc-errors";
 
 import messages from "./message";
 
@@ -23,7 +20,6 @@ export type BaseProviderState = {
     accounts: null | string[];
     isConnected: boolean;
     initialized: boolean;
-    isPermanentlyDisconnected: boolean;
 };
 
 export class JoyIdProvider extends EventEmitter {
@@ -35,7 +31,6 @@ export class JoyIdProvider extends EventEmitter {
         accounts: null,
         isConnected: false,
         initialized: false,
-        isPermanentlyDisconnected: false,
     };
 
     isMetaMask: boolean;
@@ -106,6 +101,8 @@ export class JoyIdProvider extends EventEmitter {
         try {
             switch (method) {
                 case "eth_accounts":
+                    return this.#selectedAddress;
+
                 case "eth_requestAccounts":
                     let addr = await joyid.connect();
                     if (addr !== this.#selectedAddress) {
@@ -124,8 +121,8 @@ export class JoyIdProvider extends EventEmitter {
                     input = input.match(/^0x[0-9A-Fa-f]*$/)
                         ? input
                         : hexlify(toUtf8Bytes(input));
-                    input = ethers.getBytes(input);
-                    return joyid.signMessage(
+                    input = getBytes(input);
+                    return await joyid.signMessage(
                         input,
                         this.#selectedAddress as string,
                     );
@@ -213,38 +210,17 @@ export class JoyIdProvider extends EventEmitter {
      *
      * Error codes per the CloseEvent status codes as required by EIP-1193:
      * https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent#Status_codes.
-     *
-     * @param isRecoverable - Whether the disconnection is recoverable.
-     * @param errorMessage - A custom error message.
-     * @fires BaseProvider#disconnect - If the disconnection is not recoverable.
      */
-    protected _handleDisconnect(isRecoverable: boolean, errorMessage?: string) {
-        if (
-            this._state.isConnected ||
-            (!this._state.isPermanentlyDisconnected && !isRecoverable)
-        ) {
+    protected _handleDisconnect(errorMessage?: string) {
+        if (this._state.isConnected) {
             this._state.isConnected = false;
 
-            let error;
-            if (isRecoverable) {
-                error = new JsonRpcError(
-                    1013, // Try again later
-                    errorMessage ?? messages.errors.disconnected(),
-                );
-                console.debug(error);
-            } else {
-                error = new JsonRpcError(
-                    1011, // Internal error
-                    errorMessage ?? messages.errors.permanentlyDisconnected(),
-                );
-                console.error(error);
-                this.#chainId = null;
-                this._state.accounts = null;
-                this.#selectedAddress = null;
-                this._state.isPermanentlyDisconnected = true;
-            }
+            console.error(errorMessage);
+            this.#chainId = null;
+            this._state.accounts = null;
+            this.#selectedAddress = null;
 
-            this.emit("disconnect", error);
+            this.emit("disconnect", errorMessage);
         }
     }
 
@@ -266,23 +242,19 @@ export class JoyIdProvider extends EventEmitter {
             return;
         }
 
-        if (networkVersion === "loading") {
-            this._handleDisconnect(true);
-        } else {
-            if (!isValidChainId(chainId)) {
-                console.error(messages.errors.invalidNetworkParams(), {
-                    chainId,
-                });
-                return;
-            }
+        if (!isValidChainId(chainId)) {
+            console.error(messages.errors.invalidNetworkParams(), {
+                chainId,
+            });
+            return;
+        }
 
-            this._handleConnect(chainId);
+        this._handleConnect(chainId);
 
-            if (chainId !== this.#chainId) {
-                this.#chainId = chainId;
-                if (this._state.initialized) {
-                    this.emit("chainChanged", this.#chainId);
-                }
+        if (chainId !== this.#chainId) {
+            this.#chainId = chainId;
+            if (this._state.initialized) {
+                this.emit("chainChanged", this.#chainId);
             }
         }
         if (
