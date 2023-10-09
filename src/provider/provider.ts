@@ -1,6 +1,13 @@
 import { EventEmitter } from "events";
 
-import { RequestArguments } from "./eip-1193";
+import { ethers, hexlify, toUtf8Bytes } from "ethers";
+
+import {
+    RequestArguments,
+    EIP1193Error,
+    EIP1193_ERROR_CODES,
+    isEIP1193Error,
+} from "./eip-1193";
 
 import { rpcErrors, JsonRpcError } from "@metamask/rpc-errors";
 
@@ -85,78 +92,63 @@ export class JoyIdProvider extends EventEmitter {
         return this._state.isConnected;
     }
 
-    request(arg: RequestArguments): Promise<unknown> {
-        if (!arg || typeof arg !== "object" || Array.isArray(arg)) {
-            throw rpcErrors.invalidRequest({
-                message: messages.errors.invalidRequestArgs(),
-                data: arg,
-            });
-        }
-
+    async request(arg: RequestArguments): Promise<unknown> {
         const { method, params = [] } = arg;
         if (typeof method !== "string") {
+            console.error(`warning: ${method} function is not ready in joyid.`);
             return Promise.reject(
-                new Error(`unsupported method type: ${method}`),
+                new EIP1193Error(
+                    EIP1193_ERROR_CODES.unsupportedMethod,
+                ).toJSON(),
             );
         }
 
-        switch (method) {
-            case "eth_accounts":
-            case "eth_requestAccounts":
-                return new Promise<string[]>((resolve, reject) => {
-                    joyid
-                        .connect()
-                        .then((result) => {
-                            this.#selectedAddress = result;
-                            resolve([result]);
-                        })
-                        .catch((err) => {
-                            reject(err);
-                        });
-                });
+        try {
+            switch (method) {
+                case "eth_accounts":
+                case "eth_requestAccounts":
+                    let addr = await joyid.connect();
+                    if (addr !== this.#selectedAddress) {
+                        this._handleAccountsChanged([addr]);
+                    }
+                    return [addr];
 
-            case "personal_sign":
-                if (this.selectedAddress) {
+                case "personal_sign":
+                    if (!this.#selectedAddress) {
+                        let addr = await joyid.connect();
+                        if (addr !== this.#selectedAddress) {
+                            this._handleAccountsChanged([addr]);
+                        }
+                    }
+                    let input: string | Uint8Array = (params as string[])[0];
+                    input = input.match(/^0x[0-9A-Fa-f]*$/)
+                        ? input
+                        : hexlify(toUtf8Bytes(input));
+                    input = ethers.getBytes(input);
                     return joyid.signMessage(
-                        (params as string[])[0],
-                        this.selectedAddress as string,
+                        input,
+                        this.#selectedAddress as string,
                     );
-                } else {
-                    return new Promise<string>((resolve, reject) => {
-                        joyid
-                            .connect()
-                            .then((result) => {
-                                this.#selectedAddress = result;
-                                return joyid.signMessage(
-                                    (params as string[])[0],
-                                    result,
-                                );
-                            })
-                            .then((result) => {
-                                resolve(result);
-                            })
-                            .catch((err) => {
-                                reject(err);
-                            });
-                    });
-                }
 
-            case "eth_chainId":
-                return new Promise<string>((resolve, reject) => {
-                    resolve(this.#chainId as string);
-                });
+                case "eth_chainId":
+                    return this.#chainId;
 
-            case "net_version":
-                return new Promise<string>((resolve, reject) => {
-                    resolve(this.#networkVersion as string);
-                });
+                case "net_version":
+                    return this.#networkVersion;
 
-            default:
-                return new Promise((resolve, reject) => {
-                    reject(
-                        `warning: ${method} function is not ready in joyid.`,
+                default:
+                    return Promise.reject(
+                        new EIP1193Error(
+                            EIP1193_ERROR_CODES.unsupportedMethod,
+                        ).toJSON(),
                     );
-                });
+            }
+        } catch (error) {
+            return Promise.reject(
+                new EIP1193Error(
+                    EIP1193_ERROR_CODES.userRejectedRequest,
+                ).toJSON(),
+            );
         }
     }
 

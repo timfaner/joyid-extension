@@ -22,3 +22,30 @@ fetch(window.location.href, {
         policyList[index] += " https://ethereum.publicnode.com";
         let policy = policyList.join(";");
     });
+
+async function f(a) {
+    if (a > 0) {
+        return "success";
+    } else {
+        return Promise.reject("fail");
+    }
+}
+
+async function test(a) {
+    try {
+        return await f(a);
+    } catch (err) {
+        console.log("执行catch代码");
+        return Promise.reject(err);
+    }
+}
+
+async function t(a) {
+    try {
+        return await Promise.reject("1");
+    } catch (err) {
+        console.log(5);
+        console.log(err);
+        return Promise.reject(err);
+    }
+}

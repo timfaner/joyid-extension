@@ -1,13 +1,9 @@
+import { providerErrors } from "@metamask/rpc-errors";
 import { isNumber, isObject, isString } from "./runtime-typecheck";
 
 export interface RequestArguments {
     readonly method: string;
     readonly params?: readonly unknown[] | object;
-}
-
-interface ProviderRpcError extends Error {
-    code: number;
-    data?: unknown;
 }
 
 export const EIP1193_ERROR_CODES = {
