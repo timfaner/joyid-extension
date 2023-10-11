@@ -31,6 +31,8 @@ export class JoyIdProvider extends EventEmitter {
 
     stream: WindowPostMessageStream;
 
+    stream: WindowPostMessageStream;
+
     #networkVersion: string | null;
 
     static _defaultState: BaseProviderState = {
