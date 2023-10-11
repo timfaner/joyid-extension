@@ -27,6 +27,8 @@ function setUpBridge(
     inpageStream: WindowPostMessageStream,
     backgroundStream: PortDuplexStream,
 ) {
+    //keepalive
+    setInterval(() => backgroundStream.write("ping"), 10000);
     //设置双向pipeline
     pipeline(backgroundStream, inpageStream, (err) => {
         console.error("from portStram to inpage stream", err);
