@@ -1,6 +1,7 @@
 import PortDuplexStream from "extension-port-stream";
 import generateUniqueId from "generate-unique-id";
 import { StreamPool } from "./streampool";
+import { StreamData } from "./typed";
 
 import { JOYID_APP_URL, JOYID_TEST_URL, CONTENT_STREAM_NAME } from "./constant";
 
@@ -34,7 +35,7 @@ function uiSetUp() {
 }
 
 function streamSetup(
-    on_data_cb: (data: any, stream_id: string) => void,
+    on_data_cb: (data: any, stream_id: string, that: StreamPool) => void,
 ): StreamPool {
     const stream_pool = new StreamPool(on_data_cb);
     // 监听新的数据流
@@ -49,9 +50,14 @@ function streamSetup(
     return stream_pool;
 }
 
-function router(data: any, stream_id: string) {
+function router(data: any, stream_id: string, pool: StreamPool) {
     console.log(data);
-    //TODO router 事件注册
+    if (data === "joyid_getConfig") {
+        chrome.storage.local.get("developer").then((value) => {
+            let response: StreamData = { isDeveloperMode: value.developer };
+            pool.send(stream_id, response);
+        });
+    }
 }
 
 function main() {
@@ -64,7 +70,10 @@ function main() {
     //设置同步逻辑
     chrome.storage.onChanged.addListener((changes) => {
         if (changes.developer) {
-            stream_pool.broadcastSend(changes.developer);
+            let response: StreamData = {
+                isDeveloperMode: changes.developer.newValue,
+            };
+            stream_pool.broadcastSend(response);
         }
     });
 }

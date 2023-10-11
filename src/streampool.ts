@@ -4,9 +4,15 @@ import { Duplex } from "stream";
 
 export class StreamPool {
     portStreamList = new Map<string, Duplex>();
-    declare on_data_cb: (data: any, stream_id: string) => void;
+    declare on_data_cb: (
+        data: any,
+        stream_id: string,
+        that: StreamPool,
+    ) => void;
 
-    constructor(on_data_cb: (data: any, stream_id: string) => void) {
+    constructor(
+        on_data_cb: (data: any, stream_id: string, that: StreamPool) => void,
+    ) {
         this.on_data_cb = on_data_cb;
     }
 
@@ -33,10 +39,14 @@ export class StreamPool {
         });
     }
 
+    send(stream_id: string, data: any): void {
+        this.portStreamList.get(stream_id)?.write(data);
+    }
+
     onData(portStreamID: string) {
         return (data: any) => {
             console.debug("ondata", portStreamID);
-            this.on_data_cb(data, portStreamID);
+            this.on_data_cb(data, portStreamID, this);
         };
     }
 
