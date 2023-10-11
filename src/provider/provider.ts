@@ -2,7 +2,6 @@ import { EventEmitter } from "events";
 
 import { WindowPostMessageStream } from "@metamask/post-message-stream";
 
-import { getInpageStream } from "../utils";
 import { StreamData } from "../typed";
 
 import { hexlify, toUtf8Bytes, getBytes } from "ethers";
@@ -46,7 +45,7 @@ export class JoyIdProvider extends EventEmitter {
 
     #selectedAddress: string | null;
 
-    constructor(config: joyid.EvmConfig) {
+    constructor(config: joyid.EvmConfig, stream: WindowPostMessageStream) {
         super();
 
         joyid.initConfig(config);
@@ -67,7 +66,7 @@ export class JoyIdProvider extends EventEmitter {
         this._handleDisconnect = this._handleDisconnect.bind(this);
         this.request = this.request.bind(this);
 
-        this.stream = getInpageStream();
+        this.stream = stream;
         this.stream.on("data", this._handleStreamData);
         this.stream.on("error", this._handleStreamError);
 
@@ -175,6 +174,9 @@ export class JoyIdProvider extends EventEmitter {
     }
 
     _handleStreamData(data: StreamData) {
+        if (data.isDevelopment == true) {
+            Object.assign();
+        }
         if (data.switchChain) {
             this._handleChainChanged(data.switchChain);
         }
@@ -186,6 +188,8 @@ export class JoyIdProvider extends EventEmitter {
     _handleStreamError(err: Error) {
         this._handleDisconnect(err.message);
     }
+
+    _handleConfigChanged(config) {}
 
     /**
      * MUST be called by child classes.
