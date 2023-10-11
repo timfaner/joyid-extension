@@ -1,5 +1,3 @@
-import { getInpageStream } from "./utils";
-
 import { JoyIdProvider } from "./provider/provider";
 
 let config = {
@@ -27,11 +25,6 @@ Object.defineProperty(window, "ethereum", {
     },
     configurable: true,
 });
-
-console.debug("Inject Success, Hello from inpage");
-
-// const stream = getInpageStream();
-// stream.on("data", (data) => console.log(data));
 
 // ==UserScript==
 // @name         New Userscript
