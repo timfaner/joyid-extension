@@ -1,5 +1,10 @@
 import { EventEmitter } from "events";
 
+import { WindowPostMessageStream } from "@metamask/post-message-stream";
+
+import { getInpageStream } from "../utils";
+import { StreamData } from "../typed";
+
 import { hexlify, toUtf8Bytes, getBytes } from "ethers";
 
 import {
@@ -24,6 +29,8 @@ export type BaseProviderState = {
 
 export class JoyIdProvider extends EventEmitter {
     _state: BaseProviderState;
+
+    stream: WindowPostMessageStream;
 
     #networkVersion: string | null;
 
@@ -60,6 +67,10 @@ export class JoyIdProvider extends EventEmitter {
         this._handleDisconnect = this._handleDisconnect.bind(this);
         this.request = this.request.bind(this);
 
+        this.stream = getInpageStream();
+        this.stream.on("data", this._handleStreamData);
+        this.stream.on("error", this._handleStreamError);
+
         if (config.network) {
             this._initializeState({
                 accounts: [],
@@ -91,7 +102,7 @@ export class JoyIdProvider extends EventEmitter {
         const { method, params = [] } = arg;
         if (typeof method !== "string") {
             console.error(`warning: ${method} function is not ready in joyid.`);
-            return Promise.reject(
+            return await Promise.reject(
                 new EIP1193Error(
                     EIP1193_ERROR_CODES.unsupportedMethod,
                 ).toJSON(),
@@ -148,19 +159,32 @@ export class JoyIdProvider extends EventEmitter {
                     );
 
                 default:
-                    return Promise.reject(
+                    return await Promise.reject(
                         new EIP1193Error(
                             EIP1193_ERROR_CODES.unsupportedMethod,
                         ).toJSON(),
                     );
             }
         } catch (error) {
-            return Promise.reject(
+            return await Promise.reject(
                 new EIP1193Error(
                     EIP1193_ERROR_CODES.userRejectedRequest,
                 ).toJSON(),
             );
         }
+    }
+
+    _handleStreamData(data: StreamData) {
+        if (data.switchChain) {
+            this._handleChainChanged(data.switchChain);
+        }
+        if (data.switchAccount) {
+            this._handleAccountsChanged([data.switchAccount.account]);
+        }
+    }
+
+    _handleStreamError(err: Error) {
+        this._handleDisconnect(err.message);
     }
 
     /**

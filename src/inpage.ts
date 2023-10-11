@@ -1,5 +1,3 @@
-import { getInpageStream } from "./utils";
-
 import { JoyIdProvider } from "./provider/provider";
 import { StreamData } from "./typed";
 let config = {
