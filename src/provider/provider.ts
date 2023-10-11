@@ -64,6 +64,8 @@ export class JoyIdProvider extends EventEmitter {
         this._handleConnect = this._handleConnect.bind(this);
         this._handleChainChanged = this._handleChainChanged.bind(this);
         this._handleDisconnect = this._handleDisconnect.bind(this);
+        this._handleStreamData = this._handleStreamData.bind(this);
+        this._handleStreamError = this._handleStreamError.bind(this);
         this.request = this.request.bind(this);
 
         this.stream = stream;
@@ -174,14 +176,16 @@ export class JoyIdProvider extends EventEmitter {
     }
 
     _handleStreamData(data: StreamData) {
-        if (data.isDeveloperMode) {
-            joyid.initConfig({
-                joyidAppURL: "https://testnet.joyid.dev",
-            });
-        } else {
-            joyid.initConfig({
-                joyidAppURL: "https://app.joy.id",
-            });
+        if (data.isDeveloperMode !== undefined) {
+            if (data.isDeveloperMode) {
+                joyid.initConfig({
+                    joyidAppURL: "https://testnet.joyid.dev",
+                });
+            } else {
+                joyid.initConfig({
+                    joyidAppURL: "https://app.joy.id",
+                });
+            }
         }
 
         if (data.evmConfig) {

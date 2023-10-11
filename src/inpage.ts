@@ -8,11 +8,14 @@ let injectProvider: JoyIdProvider;
 const stream = getInpageStream();
 
 stream.write("joyid_getConfig");
-stream.on("data", (data: StreamData) => {
+
+stream.once("data", (data: StreamData) => {
     injectProvider = new JoyIdProvider(data.evmConfig as EvmConfig, stream);
     window.ethereum = injectProvider;
 });
 
-stream.on("error", (err) => {
-    console.log("inject fail");
+stream.once("error", (err) => {
+    if (!injectProvider) {
+        console.log("inject error");
+    }
 });
