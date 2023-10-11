@@ -1,5 +1,9 @@
 import { EventEmitter } from "events";
 
+import { WindowPostMessageStream } from "@metamask/post-message-stream";
+
+import { StreamData } from "../typed";
+
 import { hexlify, toUtf8Bytes, getBytes } from "ethers";
 
 import {
@@ -25,6 +29,8 @@ export type BaseProviderState = {
 export class JoyIdProvider extends EventEmitter {
     _state: BaseProviderState;
 
+    stream: WindowPostMessageStream;
+
     #networkVersion: string | null;
 
     static _defaultState: BaseProviderState = {
@@ -39,7 +45,7 @@ export class JoyIdProvider extends EventEmitter {
 
     #selectedAddress: string | null;
 
-    constructor(config: joyid.EvmConfig) {
+    constructor(config: joyid.EvmConfig, stream: WindowPostMessageStream) {
         super();
 
         joyid.initConfig(config);
@@ -59,6 +65,10 @@ export class JoyIdProvider extends EventEmitter {
         this._handleChainChanged = this._handleChainChanged.bind(this);
         this._handleDisconnect = this._handleDisconnect.bind(this);
         this.request = this.request.bind(this);
+
+        this.stream = stream;
+        this.stream.on("data", this._handleStreamData);
+        this.stream.on("error", this._handleStreamError);
 
         if (config.network) {
             this._initializeState({
@@ -91,7 +101,7 @@ export class JoyIdProvider extends EventEmitter {
         const { method, params = [] } = arg;
         if (typeof method !== "string") {
             console.error(`warning: ${method} function is not ready in joyid.`);
-            return Promise.reject(
+            return await Promise.reject(
                 new EIP1193Error(
                     EIP1193_ERROR_CODES.unsupportedMethod,
                 ).toJSON(),
@@ -148,19 +158,49 @@ export class JoyIdProvider extends EventEmitter {
                     );
 
                 default:
-                    return Promise.reject(
+                    return await Promise.reject(
                         new EIP1193Error(
                             EIP1193_ERROR_CODES.unsupportedMethod,
                         ).toJSON(),
                     );
             }
         } catch (error) {
-            return Promise.reject(
+            return await Promise.reject(
                 new EIP1193Error(
                     EIP1193_ERROR_CODES.userRejectedRequest,
                 ).toJSON(),
             );
         }
+    }
+
+    _handleStreamData(data: StreamData) {
+        if (data.isDeveloperMode) {
+            joyid.initConfig({
+                joyidAppURL: "https://testnet.joyid.dev",
+            });
+        } else {
+            joyid.initConfig({
+                joyidAppURL: "https://app.joy.id",
+            });
+        }
+
+        if (data.evmConfig) {
+            let rpcURL = data.evmConfig.rpcURL;
+            let chainId = data.evmConfig.network?.chainId;
+            if (chainId) {
+                this._handleChainChanged({
+                    chainId: chainId.toString(16),
+                    networkVersion: chainId.toString(),
+                });
+            }
+            if (rpcURL) {
+                joyid.initConfig(rpcURL);
+            }
+        }
+    }
+
+    _handleStreamError(err: Error) {
+        this._handleDisconnect(err.message);
     }
 
     /**

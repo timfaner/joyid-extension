@@ -1,41 +1,18 @@
-import { getInpageStream } from "./utils";
-
+import { EvmConfig } from "@joyid/evm";
 import { JoyIdProvider } from "./provider/provider";
 import { StreamData } from "./typed";
-let config = {
-    // your app name
-    name: "EVM demo",
-    // your app logo,
-    logo: "https://fav.farm/🆔",
-    // optional, config for the network you want to connect to
-    network: {
-        chainId: 80001,
-        name: "Ethereum Mainnet",
-    },
-    // optional
-    rpcURL: "https://cloudflare-eth.com",
-};
+import { getInpageStream } from "./utils";
 
-let injectProvider = new JoyIdProvider(config);
+let injectProvider: JoyIdProvider;
 
 const stream = getInpageStream();
 
 stream.write("joyid_getConfig");
 stream.on("data", (data: StreamData) => {
-    console.log(data);
-    if (data.isDeveloperMode) {
-        console.log("Under developer mode");
-    }
+    injectProvider = new JoyIdProvider(data.evmConfig as EvmConfig, stream);
+    window.ethereum = injectProvider;
 });
 
-Object.defineProperty(window, "ethereum", {
-    get() {
-        return injectProvider;
-    },
-    set(newProvider) {
-        return injectProvider;
-    },
-    configurable: true,
+stream.on("error", (err) => {
+    console.log("inject fail");
 });
-
-console.debug("Inject Success, Hello from inpage");
