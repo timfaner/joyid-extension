@@ -38,18 +38,19 @@ function setUpBridge(
 }
 
 function main() {
-    injectScript("inpage.js");
-
     const port = chrome.runtime.connect({ name: CONTENT_STREAM_NAME });
-    // const backgroundStream = new PortDuplexStream(port);
 
-    // //需要在inpage注入后初始化inpageStream
-    // const inpageStream = new WindowPostMessageStream({
-    //   name: CONSTEN_WINDOW_STREAM_NAME,
-    //   target: INPAGE_WINDOW_STREAM_NAME,
-    // });
+    const backgroundStream = new PortDuplexStream(port);
 
-    // setUpBridge(inpageStream, backgroundStream);
+    //需要在inpage注入后初始化inpageStream
+    const inpageStream = new WindowPostMessageStream({
+        name: CONSTEN_WINDOW_STREAM_NAME,
+        target: INPAGE_WINDOW_STREAM_NAME,
+    });
+
+    setUpBridge(inpageStream, backgroundStream);
+
+    injectScript("inpage.js");
 }
 
 main();
