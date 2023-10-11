@@ -198,7 +198,7 @@ export class JoyIdProvider extends EventEmitter {
             let chainId = data.evmConfig.network?.chainId;
             if (chainId) {
                 this._handleChainChanged({
-                    chainId: chainId.toString(16),
+                    chainId: "0x" + chainId.toString(16),
                     networkVersion: chainId.toString(),
                 });
             }

@@ -53,8 +53,24 @@ function streamSetup(
 function router(data: any, stream_id: string, pool: StreamPool) {
     console.log(data);
     if (data === "joyid_getConfig") {
+        let config = {
+            // your app name
+            name: "EVM demo",
+            // your app logo,
+            logo: "https://fav.farm/🆔",
+            // optional, config for the network you want to connect to
+            network: {
+                chainId: 80001,
+                name: "Ethereum Mainnet",
+            },
+            // optional
+            rpcURL: "https://cloudflare-eth.com",
+        };
         chrome.storage.local.get("developer").then((value) => {
-            let response: StreamData = { isDeveloperMode: value.developer };
+            let response: StreamData = {
+                isDeveloperMode: value.developer,
+                evmConfig: config,
+            };
             pool.send(stream_id, response);
         });
     }

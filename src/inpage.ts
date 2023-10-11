@@ -16,6 +16,6 @@ stream.once("data", (data: StreamData) => {
 
 stream.once("error", (err) => {
     if (!injectProvider) {
-        console.log("inject error");
+        console.log(err);
     }
 });
