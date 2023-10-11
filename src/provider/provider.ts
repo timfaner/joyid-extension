@@ -46,10 +46,10 @@ export class JoyIdProvider extends EventEmitter {
 
     #selectedAddress: string | null;
 
-    constructor(config: joyid.EvmConfig, stream: WindowPostMessageStream) {
+    constructor(stream: WindowPostMessageStream) {
         super();
 
-        joyid.initConfig(config);
+        this.stream = stream;
 
         this.isMetaMask = true;
 
@@ -69,19 +69,22 @@ export class JoyIdProvider extends EventEmitter {
         this._handleStreamError = this._handleStreamError.bind(this);
         this.request = this.request.bind(this);
 
-        this.stream = stream;
-        this.stream.on("data", this._handleStreamData);
-        this.stream.on("error", this._handleStreamError);
-
-        if (config.network) {
-            this._initializeState({
-                accounts: [],
-                chainId: "0x" + config.network.chainId.toString(16),
-                networkVersion: config.network.chainId.toString(10),
-            });
-        } else {
-            this._initializeState();
-        }
+        stream.write("joyid_getConfig");
+        this.stream.once("data", (data: StreamData) => {
+            let config = data.evmConfig as joyid.EvmConfig;
+            joyid.initConfig(config);
+            this.stream.on("data", this._handleStreamData);
+            this.stream.on("error", this._handleStreamError);
+            if (config.network) {
+                this._initializeState({
+                    accounts: [],
+                    chainId: "0x" + config.network.chainId.toString(16),
+                    networkVersion: config.network.chainId.toString(10),
+                });
+            } else {
+                this._initializeState();
+            }
+        });
     }
 
     get chainId(): string | null {

@@ -7,12 +7,8 @@ let injectProvider: JoyIdProvider;
 
 const stream = getInpageStream();
 
-stream.write("joyid_getConfig");
-
-stream.once("data", (data: StreamData) => {
-    injectProvider = new JoyIdProvider(data.evmConfig as EvmConfig, stream);
-    window.ethereum = injectProvider;
-});
+injectProvider = new JoyIdProvider(stream);
+window.ethereum = injectProvider;
 
 stream.once("error", (err) => {
     if (!injectProvider) {
