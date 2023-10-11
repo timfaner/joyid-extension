@@ -31,8 +31,6 @@ export class JoyIdProvider extends EventEmitter {
 
     stream: WindowPostMessageStream;
 
-    stream: WindowPostMessageStream;
-
     #networkVersion: string | null;
 
     static _defaultState: BaseProviderState = {
@@ -176,22 +174,34 @@ export class JoyIdProvider extends EventEmitter {
     }
 
     _handleStreamData(data: StreamData) {
-        if (data.isDevelopment == true) {
-            Object.assign();
+        if (data.isDeveloperMode) {
+            joyid.initConfig({
+                joyidAppURL: "https://testnet.joyid.dev",
+            });
+        } else {
+            joyid.initConfig({
+                joyidAppURL: "https://app.joy.id",
+            });
         }
-        if (data.switchChain) {
-            this._handleChainChanged(data.switchChain);
-        }
-        if (data.switchAccount) {
-            this._handleAccountsChanged([data.switchAccount.account]);
+
+        if (data.evmConfig) {
+            let rpcURL = data.evmConfig.rpcURL;
+            let chainId = data.evmConfig.network?.chainId;
+            if (chainId) {
+                this._handleChainChanged({
+                    chainId: chainId.toString(16),
+                    networkVersion: chainId.toString(),
+                });
+            }
+            if (rpcURL) {
+                joyid.initConfig(rpcURL);
+            }
         }
     }
 
     _handleStreamError(err: Error) {
         this._handleDisconnect(err.message);
     }
-
-    _handleConfigChanged(config) {}
 
     /**
      * MUST be called by child classes.
