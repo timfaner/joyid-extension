@@ -10,6 +10,7 @@ import {
     RequestArguments,
     EIP1193Error,
     EIP1193_ERROR_CODES,
+    isEIP1193Error,
 } from "./eip-1193";
 
 import messages from "./message";
@@ -167,11 +168,15 @@ export class JoyIdProvider extends EventEmitter {
                     );
             }
         } catch (error) {
-            return await Promise.reject(
-                new EIP1193Error(
-                    EIP1193_ERROR_CODES.userRejectedRequest,
-                ).toJSON(),
-            );
+            if (!isEIP1193Error(error)) {
+                return await Promise.reject(
+                    new EIP1193Error(
+                        EIP1193_ERROR_CODES.userRejectedRequest,
+                    ).toJSON(),
+                );
+            } else {
+                return await Promise.reject(error);
+            }
         }
     }
 
