@@ -6,6 +6,7 @@ export interface RequestArguments {
     readonly params?: readonly unknown[] | object;
 }
 
+// EIP-1193 error
 export const EIP1193_ERROR_CODES = {
     userRejectedRequest: {
         code: 4001,
