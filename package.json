@@ -4,7 +4,8 @@
     "description": "",
     "main": "background.js",
     "scripts": {
-        "build": "webpack --config webpack/webpack.config.js",
+        "build": "webpack --config webpack/webpack.dev.js",
+        "build:prod": "webpack --config webpack/webpack.prod.js",
         "test": "echo \"Error: no test specified\" && exit 1",
         "prepare": "husky install"
     },

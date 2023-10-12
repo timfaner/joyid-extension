@@ -63,6 +63,8 @@ function router(data: any, stream_id: string, pool: StreamPool) {
     if (data === "joyid_getConfig") {
         chrome.storage.local.get("developer").then((value) => {
             const config = getDefaultJoyidConfig();
+
+            // 正式版config写入正式版网页url
             if (!value.developer) {
                 config.joyidAppURL = JOYID_APP_URL;
             }
@@ -85,6 +87,7 @@ function main() {
 
     //设置同步逻辑
     chrome.storage.onChanged.addListener((changes) => {
+        // 开发者模式发生改变
         if (changes.developer) {
             let response: StreamData = {
                 isDeveloperMode: changes.developer.newValue,
