@@ -319,18 +319,14 @@ export class JoyIdProvider extends EventEmitter {
 
         if (chainId !== this.#chainId) {
             this.#chainId = chainId;
-            if (this._state.initialized) {
-                this.emit("chainChanged", this.#chainId);
-            }
+            this.emit("chainChanged", this.#chainId);
         }
         if (
             this._state.isConnected &&
             networkVersion !== this.#networkVersion
         ) {
             this.#networkVersion = networkVersion as string;
-            if (this._state.initialized) {
-                this.emit("networkChanged", this.#networkVersion);
-            }
+            this.emit("networkChanged", this.#networkVersion);
         }
     }
 
@@ -381,12 +377,7 @@ export class JoyIdProvider extends EventEmitter {
             // handle selectedAddress
             if (this.#selectedAddress !== _accounts[0]) {
                 this.#selectedAddress = (_accounts[0] as string) || null;
-            }
-
-            // finally, after all state has been updated, emit the event
-            if (this._state.initialized) {
-                const _nextAccounts = [..._accounts];
-                this.emit("accountsChanged", _nextAccounts);
+                this.emit("accountsChanged", [..._accounts]);
             }
         }
     }
