@@ -16,7 +16,7 @@ export const DEFAULT_JOYID_CONFIG: EvmConfig = {
 
     // optional, config for the network you want to connect to
     network: {
-        chainId: 80001,
+        chainId: 1,
         name: "Ethereum Mainnet",
     },
     // optional

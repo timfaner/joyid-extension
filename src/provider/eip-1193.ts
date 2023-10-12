@@ -1,6 +1,6 @@
-import { providerErrors } from "@metamask/rpc-errors";
 import { isNumber, isObject, isString } from "./runtime-typecheck";
 
+// EIP-1193 standard
 export interface RequestArguments {
     readonly method: string;
     readonly params?: readonly unknown[] | object;
@@ -21,13 +21,10 @@ export const EIP1193_ERROR_CODES = {
         message: "The Provider does not support the requested method.",
     },
     disconnected: {
-        // 4900 is intended to indicate that the Provider is disconnected from all chains
         code: 4900,
         message: "The Provider is disconnected from all chains.",
     },
     chainDisconnected: {
-        // 4901 is intended to indicate that the Provider is disconnected from a specific chain only.
-        // In other words, 4901 implies that the Provider is connected to other chains, just not the requested one.
         code: 4901,
         message: "The Provider is not connected to the requested chain.",
     },
@@ -42,6 +39,7 @@ export type EIP1193ErrorCodeNumbers = Pick<
     (typeof EIP1193_ERROR_CODES)[keyof typeof EIP1193_ERROR_CODES],
     "code"
 >;
+
 export class EIP1193Error extends Error {
     constructor(public eip1193Error: EIP1193ErrorPayload) {
         super(eip1193Error.message);

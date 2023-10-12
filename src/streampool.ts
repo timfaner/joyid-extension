@@ -1,4 +1,3 @@
-import { connectCallback } from "@joyid/evm";
 import generateUniqueId from "generate-unique-id";
 import { Duplex } from "stream";
 
