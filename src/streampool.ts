@@ -24,7 +24,6 @@ export class StreamPool {
         portStream.on("close", this.onClose(portStreamID));
         portStream.on("error", this.onError(portStreamID));
 
-        portStream.write(`background connected, your id is ${portStreamID}`);
         console.debug(`Connect id is ${portStreamID}`);
     }
 

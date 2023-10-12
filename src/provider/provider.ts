@@ -1,11 +1,16 @@
 import { EventEmitter } from "events";
 
+import { WindowPostMessageStream } from "@metamask/post-message-stream";
+
+import { StreamData } from "../typed";
+
 import { hexlify, toUtf8Bytes, getBytes } from "ethers";
 
 import {
     RequestArguments,
     EIP1193Error,
     EIP1193_ERROR_CODES,
+    isEIP1193Error,
 } from "./eip-1193";
 
 import messages from "./message";
@@ -25,6 +30,8 @@ export type BaseProviderState = {
 export class JoyIdProvider extends EventEmitter {
     _state: BaseProviderState;
 
+    stream: WindowPostMessageStream;
+
     #networkVersion: string | null;
 
     static _defaultState: BaseProviderState = {
@@ -39,10 +46,10 @@ export class JoyIdProvider extends EventEmitter {
 
     #selectedAddress: string | null;
 
-    constructor(config: joyid.EvmConfig) {
+    constructor(stream: WindowPostMessageStream) {
         super();
 
-        joyid.initConfig(config);
+        this.stream = stream;
 
         this.isMetaMask = true;
 
@@ -58,17 +65,26 @@ export class JoyIdProvider extends EventEmitter {
         this._handleConnect = this._handleConnect.bind(this);
         this._handleChainChanged = this._handleChainChanged.bind(this);
         this._handleDisconnect = this._handleDisconnect.bind(this);
+        this._handleStreamData = this._handleStreamData.bind(this);
+        this._handleStreamError = this._handleStreamError.bind(this);
         this.request = this.request.bind(this);
 
-        if (config.network) {
-            this._initializeState({
-                accounts: [],
-                chainId: "0x" + config.network.chainId.toString(16),
-                networkVersion: config.network.chainId.toString(10),
-            });
-        } else {
-            this._initializeState();
-        }
+        stream.write("joyid_getConfig");
+        this.stream.once("data", (data: StreamData) => {
+            let config = data.evmConfig as joyid.EvmConfig;
+            joyid.initConfig(config);
+            this.stream.on("data", this._handleStreamData);
+            this.stream.on("error", this._handleStreamError);
+            if (config.network) {
+                this._initializeState({
+                    accounts: [],
+                    chainId: "0x" + config.network.chainId.toString(16),
+                    networkVersion: config.network.chainId.toString(10),
+                });
+            } else {
+                this._initializeState();
+            }
+        });
     }
 
     get chainId(): string | null {
@@ -91,7 +107,7 @@ export class JoyIdProvider extends EventEmitter {
         const { method, params = [] } = arg;
         if (typeof method !== "string") {
             console.error(`warning: ${method} function is not ready in joyid.`);
-            return Promise.reject(
+            return await Promise.reject(
                 new EIP1193Error(
                     EIP1193_ERROR_CODES.unsupportedMethod,
                 ).toJSON(),
@@ -148,19 +164,55 @@ export class JoyIdProvider extends EventEmitter {
                     );
 
                 default:
-                    return Promise.reject(
+                    return await Promise.reject(
                         new EIP1193Error(
                             EIP1193_ERROR_CODES.unsupportedMethod,
                         ).toJSON(),
                     );
             }
         } catch (error) {
-            return Promise.reject(
-                new EIP1193Error(
-                    EIP1193_ERROR_CODES.userRejectedRequest,
-                ).toJSON(),
-            );
+            if (!isEIP1193Error(error)) {
+                return await Promise.reject(
+                    new EIP1193Error(
+                        EIP1193_ERROR_CODES.userRejectedRequest,
+                    ).toJSON(),
+                );
+            } else {
+                return await Promise.reject(error);
+            }
         }
+    }
+
+    _handleStreamData(data: StreamData) {
+        if (data.isDeveloperMode !== undefined) {
+            if (data.isDeveloperMode) {
+                joyid.initConfig({
+                    joyidAppURL: "https://testnet.joyid.dev",
+                });
+            } else {
+                joyid.initConfig({
+                    joyidAppURL: "https://app.joy.id",
+                });
+            }
+        }
+
+        if (data.evmConfig) {
+            let rpcURL = data.evmConfig.rpcURL;
+            let chainId = data.evmConfig.network?.chainId;
+            if (chainId) {
+                this._handleChainChanged({
+                    chainId: "0x" + chainId.toString(16),
+                    networkVersion: chainId.toString(),
+                });
+            }
+            if (rpcURL) {
+                joyid.initConfig(rpcURL);
+            }
+        }
+    }
+
+    _handleStreamError(err: Error) {
+        this._handleDisconnect(err.message);
     }
 
     /**

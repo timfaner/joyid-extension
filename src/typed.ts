@@ -1,3 +1,5 @@
+import { EvmConfig } from "@joyid/evm";
+
 export interface StorageData {
     developer?: boolean;
     chainlists?: string;
@@ -5,15 +7,5 @@ export interface StorageData {
 
 export interface StreamData {
     isDeveloperMode?: boolean;
-    chainConfig?: ChainConfig;
-}
-
-export interface ChainConfig {
-    rpcURL: string;
-    network: ChainNetwork;
-}
-
-export interface ChainNetwork {
-    chainId: string;
-    name: string;
+    evmConfig?: EvmConfig;
 }
