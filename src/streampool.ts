@@ -46,7 +46,7 @@ export class StreamPool {
 
     onData(portStreamID: string) {
         return (data: any) => {
-            console.debug("ondata", portStreamID);
+            //console.debug("ondata", portStreamID);
             this.on_data_cb(data, portStreamID, this);
         };
     }

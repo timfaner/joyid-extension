@@ -59,8 +59,9 @@ function streamSetup(
 }
 
 function router(data: any, stream_id: string, pool: StreamPool) {
-    console.debug(data);
     if (data === "joyid_getConfig") {
+        console.debug(data);
+
         chrome.storage.local.get("developer").then((value) => {
             const config = getDefaultJoyidConfig();
 
@@ -73,8 +74,12 @@ function router(data: any, stream_id: string, pool: StreamPool) {
                 isDeveloperMode: value.developer,
                 evmConfig: config,
             };
+            console.debug(response, stream_id);
             pool.send(stream_id, response);
         });
+    } else if (data === "ping") {
+    } else {
+        console.debug(data);
     }
 }
 

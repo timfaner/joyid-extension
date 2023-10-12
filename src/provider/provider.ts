@@ -53,6 +53,7 @@ export class JoyIdProvider extends EventEmitter {
 
         // 与后端通信，拉取初始 config 以及接收配置信息
         this.stream = stream;
+        this.stream.on("error", (err) => console.error("Init provider", err));
 
         // 一些 DApp 仅支持 metamask-like provider
         this.isMetaMask = true;
@@ -81,6 +82,8 @@ export class JoyIdProvider extends EventEmitter {
         this.stream.once("data", (data: StreamData) => {
             let config = data.evmConfig as joyid.EvmConfig;
             joyid.initConfig(config);
+
+            console.debug(config);
             this.stream.on("data", this._handleStreamData);
             this.stream.on("error", this._handleStreamError);
             if (config.network) {

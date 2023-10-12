@@ -30,8 +30,9 @@ export function enableDebug() {
     // Your code here...
 }
 
-import { initConfig, EvmConfig } from "@joyid/evm";
+import { EvmConfig } from "@joyid/evm";
 
 export function getDefaultJoyidConfig(): EvmConfig {
-    return initConfig(DEFAULT_JOYID_CONFIG);
+    //暴力复制DEFAULT_JOYID_CONFIG
+    return JSON.parse(JSON.stringify(DEFAULT_JOYID_CONFIG));
 }
