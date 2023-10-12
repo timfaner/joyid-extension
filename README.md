@@ -21,6 +21,10 @@
 
 If you want publish in production mode , please use `yarn build:prod` instead.
 
-### publich
+### release
+
+Use versional tag `v*.*.*`, push tag to main branch will release extension zip pack.
+
+### publish
 
 Refer to [chrome guide](https://developer.chrome.com/docs/extensions/mv3/hosting/)
