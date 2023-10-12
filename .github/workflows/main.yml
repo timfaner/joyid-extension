@@ -1,5 +1,8 @@
 name: Main
 
+permissions:
+  contents: write
+  discussions: write
 on:
   push:
     tags:
