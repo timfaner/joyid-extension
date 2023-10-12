@@ -1,6 +1,7 @@
 import { WindowPostMessageStream } from "@metamask/post-message-stream";
 import {
     CONSTEN_WINDOW_STREAM_NAME,
+    DEFAULT_JOYID_CONFIG,
     INPAGE_WINDOW_STREAM_NAME,
 } from "./constant";
 
@@ -27,4 +28,10 @@ export function enableDebug() {
             (f) => (window.ethereum[f] = new Proxy(ethOrigi[f], rubberNeck)),
         );
     // Your code here...
+}
+
+import { initConfig, EvmConfig } from "@joyid/evm";
+
+export function getDefaultJoyidConfig(): EvmConfig {
+    return initConfig(DEFAULT_JOYID_CONFIG);
 }

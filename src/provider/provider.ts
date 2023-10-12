@@ -20,6 +20,7 @@ import * as joyid from "@joyid/evm";
 import dequal from "fast-deep-equal";
 
 import { isValidChainId, isValidNetworkVersion } from "./utils";
+import { JOYID_APP_URL, JOYID_TEST_URL } from "../constant";
 
 export type BaseProviderState = {
     accounts: null | string[];
@@ -187,11 +188,11 @@ export class JoyIdProvider extends EventEmitter {
         if (data.isDeveloperMode !== undefined) {
             if (data.isDeveloperMode) {
                 joyid.initConfig({
-                    joyidAppURL: "https://testnet.joyid.dev",
+                    joyidAppURL: JOYID_TEST_URL,
                 });
             } else {
                 joyid.initConfig({
-                    joyidAppURL: "https://app.joy.id",
+                    joyidAppURL: JOYID_APP_URL,
                 });
             }
         }

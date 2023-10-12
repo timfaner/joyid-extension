@@ -3,7 +3,14 @@ import generateUniqueId from "generate-unique-id";
 import { StreamPool } from "./streampool";
 import { StreamData } from "./typed";
 
-import { JOYID_APP_URL, JOYID_TEST_URL, CONTENT_STREAM_NAME } from "./constant";
+import {
+    JOYID_APP_URL,
+    JOYID_TEST_URL,
+    CONTENT_STREAM_NAME,
+    DEFAULT_JOYID_CONFIG,
+} from "./constant";
+import { initConfig } from "@joyid/evm";
+import { getDefaultJoyidConfig } from "./utils";
 
 function uiSetUp() {
     // 添加options 按钮
@@ -53,20 +60,12 @@ function streamSetup(
 function router(data: any, stream_id: string, pool: StreamPool) {
     console.log(data);
     if (data === "joyid_getConfig") {
-        let config = {
-            // your app name
-            name: "EVM demo",
-            // your app logo,
-            logo: "https://fav.farm/🆔",
-            // optional, config for the network you want to connect to
-            network: {
-                chainId: 80001,
-                name: "Ethereum Mainnet",
-            },
-            // optional
-            rpcURL: "https://cloudflare-eth.com",
-        };
         chrome.storage.local.get("developer").then((value) => {
+            const config = getDefaultJoyidConfig();
+            if (!value.developer) {
+                config.joyidAppURL = JOYID_APP_URL;
+            }
+
             let response: StreamData = {
                 isDeveloperMode: value.developer,
                 evmConfig: config,
