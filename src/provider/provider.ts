@@ -42,6 +42,7 @@ export class JoyIdProvider extends EventEmitter {
     };
 
     isMetaMask: boolean;
+    isJoyIDExtension: boolean;
 
     #chainId: string | null;
 
@@ -55,6 +56,9 @@ export class JoyIdProvider extends EventEmitter {
 
         // 一些 DApp 仅支持 metamask-like provider
         this.isMetaMask = true;
+
+        // 调用这个方法以知道是否为joyid 插件
+        this.isJoyIDExtension = true;
 
         this.#selectedAddress = null;
         this.#chainId = null;
