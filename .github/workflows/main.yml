@@ -19,7 +19,7 @@ jobs:
       - name: Setup dependency
         run: yarn install
       - name: Build
-        run: yarn build
+        run: yarn build:prod
       - name: Zip
         run: zip -r JoyIDExtension.zip dist/
       - name: Release
