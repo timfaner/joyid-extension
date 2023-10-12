@@ -2,12 +2,20 @@ import PortDuplexStream from "extension-port-stream";
 import { StreamPool } from "./streampool";
 import { StreamData } from "./typed";
 
-import { JOYID_APP_URL, JOYID_TEST_URL, CONTENT_STREAM_NAME } from "./constant";
+import {
+    JOYID_APP_URL,
+    JOYID_TEST_URL,
+    CONTENT_STREAM_NAME,
+    DEFAULT_DEVELOPER_MODE,
+} from "./constant";
 import { getDefaultJoyidConfig } from "./utils";
 
 function uiSetUp() {
-    // 添加options 按钮
     chrome.runtime.onInstalled.addListener(function () {
+        //初始化开发者模式
+        chrome.storage.local.set({ developer: DEFAULT_DEVELOPER_MODE });
+
+        // 添加options 按钮
         chrome.contextMenus.create({
             id: "options",
             title: "Options",

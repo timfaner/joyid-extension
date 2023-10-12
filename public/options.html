@@ -3,16 +3,51 @@
     <head>
         <meta charset="UTF-8" />
         <title>Options</title>
+        <style>
+            /* 基本样式 */
+            body {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                background-color: #f4f4f4;
+                font-family: "Arial", sans-serif;
+            }
+
+            .container {
+                background-color: #ffffff;
+                padding: 20px;
+                border-radius: 10px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                text-align: center;
+            }
+
+            button {
+                background-color: #4caf50;
+                border: none;
+                color: white;
+                padding: 10px 15px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                margin: 4px 2px;
+                cursor: pointer;
+                border-radius: 4px;
+            }
+        </style>
     </head>
 
     <body>
-        <label>
-            <input type="checkbox" id="developerSwitch" /> 开发者模式
-        </label>
-        <div id="chainSetup" style="display: none">
-            <button id="uploadButton">上传链配置文件</button>
-            <input type="file" id="chainFile" style="display: none" />
-            <button id="downloadTemplate">下载模板</button>
+        <div class="container">
+            <label>
+                <input type="checkbox" id="developerSwitch" /> 开发者模式
+            </label>
+            <div id="chainSetup" style="display: none">
+                <button id="uploadButton">上传链配置文件</button>
+                <input type="file" id="chainFile" style="display: none" />
+                <button id="downloadTemplate">下载模板</button>
+            </div>
         </div>
         <script src="options.js"></script>
     </body>
