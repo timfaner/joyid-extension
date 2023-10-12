@@ -16,7 +16,7 @@ export function enableDebug() {
     "use strict";
     const rubberNeck = {
         apply: function (tgt: any, thisArg: any, argList: any) {
-            console.log("apply", tgt.name, JSON.stringify(argList, null, 2));
+            console.debug("apply", tgt.name, JSON.stringify(argList, null, 2));
             return Reflect.apply(tgt, thisArg, argList);
         },
     };

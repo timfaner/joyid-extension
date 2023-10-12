@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     //设置上传按钮
     chainFile.addEventListener("change", function (event) {
-        console.log("upload");
+        console.debug("upload");
         if (!event || !event.target) return;
         const inputElement = event.target as HTMLInputElement;
         const file = inputElement.files && inputElement.files[0];

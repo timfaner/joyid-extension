@@ -50,8 +50,10 @@ export class JoyIdProvider extends EventEmitter {
     constructor(stream: WindowPostMessageStream) {
         super();
 
+        // 与后端通信，拉取初始 config 以及接收配置信息
         this.stream = stream;
 
+        // 一些 DApp 仅支持 metamask-like provider
         this.isMetaMask = true;
 
         this.#selectedAddress = null;
@@ -70,6 +72,7 @@ export class JoyIdProvider extends EventEmitter {
         this._handleStreamError = this._handleStreamError.bind(this);
         this.request = this.request.bind(this);
 
+        // 拉取初始配置，同时监听事件更新配置信息
         stream.write("joyid_getConfig");
         this.stream.once("data", (data: StreamData) => {
             let config = data.evmConfig as joyid.EvmConfig;
@@ -104,10 +107,18 @@ export class JoyIdProvider extends EventEmitter {
         return this._state.isConnected;
     }
 
+    /**
+     * provider 主要方法，Dapp 调用 provider 的 request 方法发送请求
+     * 按照 EIP-1193 标准，request 接受 RequestArguments 类型参数，返回 Promise
+     * 如果 Promise resolve，需要包含返回的结果
+     * 如果 Promise reject，需要包含拒绝的原因
+     *
+     * @param arg - 请求参数
+     */
     async request(arg: RequestArguments): Promise<unknown> {
         const { method, params = [] } = arg;
         if (typeof method !== "string") {
-            console.error(`warning: ${method} function is not ready in joyid.`);
+            console.log(messages.errors.invalidRequestMethod());
             return await Promise.reject(
                 new EIP1193Error(
                     EIP1193_ERROR_CODES.unsupportedMethod,
@@ -119,6 +130,12 @@ export class JoyIdProvider extends EventEmitter {
             switch (method) {
                 case "eth_accounts":
                     return this.#selectedAddress;
+
+                case "eth_chainId":
+                    return this.#chainId;
+
+                case "net_version":
+                    return this.#networkVersion;
 
                 case "eth_requestAccounts":
                     let addr = await joyid.connect();
@@ -134,6 +151,8 @@ export class JoyIdProvider extends EventEmitter {
                             this._handleAccountsChanged([addr]);
                         }
                     }
+
+                    // 输入统一转化为 Uint8Array 类型
                     let input: string | Uint8Array = (params as string[])[0];
                     input = input.match(/^0x[0-9A-Fa-f]*$/)
                         ? input
@@ -144,12 +163,7 @@ export class JoyIdProvider extends EventEmitter {
                         this.#selectedAddress as string,
                     );
 
-                case "eth_chainId":
-                    return this.#chainId;
-
-                case "net_version":
-                    return this.#networkVersion;
-
+                // JoyId 中 signTypedData 实现的版本为 eth_signTypedData_v4
                 case "eth_signTypedData_v3":
                 case "eth_signTypedData_v4":
                     if (!this.#selectedAddress) {
@@ -164,7 +178,12 @@ export class JoyIdProvider extends EventEmitter {
                         this.#selectedAddress as string,
                     );
 
+                // 未实现的方法现在均返回 unsupportedMethod EIP-1193 Error
+                // 打印 warning: ${method} function is not ready in joyid.
                 default:
+                    console.error(
+                        `warning: ${method} function is not ready in joyid.`,
+                    );
                     return await Promise.reject(
                         new EIP1193Error(
                             EIP1193_ERROR_CODES.unsupportedMethod,
@@ -172,6 +191,7 @@ export class JoyIdProvider extends EventEmitter {
                     );
             }
         } catch (error) {
+            // 对于用户拒绝请求或者 rpc 可能出现的错误，现在返回 userRejectedRequest EIP-1193 Error
             if (!isEIP1193Error(error)) {
                 return await Promise.reject(
                     new EIP1193Error(
@@ -184,6 +204,7 @@ export class JoyIdProvider extends EventEmitter {
         }
     }
 
+    // 监听 stream 事件，更新配置信息
     _handleStreamData(data: StreamData) {
         if (data.isDeveloperMode !== undefined) {
             if (data.isDeveloperMode) {
@@ -212,13 +233,12 @@ export class JoyIdProvider extends EventEmitter {
         }
     }
 
+    // 监听 stream 事件，处理错误
     _handleStreamError(err: Error) {
         this._handleDisconnect(err.message);
     }
 
     /**
-     * MUST be called by child classes.
-     *
      * Sets initial state if provided and marks this provider as initialized.
      * Throws if called more than once.
      *
@@ -229,8 +249,6 @@ export class JoyIdProvider extends EventEmitter {
      * @param initialState.accounts - The user's accounts.
      * @param initialState.chainId - The chain ID.
      * @param initialState.networkVersion - The network version.
-     * @fires BaseProvider#_initialized - If `initialState` is defined.
-     * @fires BaseProvider#connect - If `initialState` is defined.
      */
     _initializeState(initialState?: {
         accounts: string[];
@@ -244,7 +262,6 @@ export class JoyIdProvider extends EventEmitter {
         if (initialState) {
             const { accounts, chainId, networkVersion } = initialState;
 
-            // EIP-1193 connect
             this._handleConnect(chainId);
             this._handleChainChanged({ chainId, networkVersion });
             this._handleAccountsChanged(accounts);
@@ -261,7 +278,6 @@ export class JoyIdProvider extends EventEmitter {
      * required events. Idempotent.
      *
      * @param chainId - The ID of the newly connected chain.
-     * @fires JoyIdInpageProvider#connect
      */
     _handleConnect(chainId: string) {
         if (!this._state.isConnected) {
@@ -305,13 +321,6 @@ export class JoyIdProvider extends EventEmitter {
             console.error(messages.errors.invalidNetworkParams(), {
                 chainId,
                 networkVersion,
-            });
-            return;
-        }
-
-        if (!isValidChainId(chainId)) {
-            console.error(messages.errors.invalidNetworkParams(), {
-                chainId,
             });
             return;
         }
@@ -364,8 +373,6 @@ export class JoyIdProvider extends EventEmitter {
 
         // emit accountsChanged if anything about the accounts array has changed
         if (!dequal(this._state.accounts, _accounts)) {
-            // we should always have the correct accounts even before eth_accounts
-            // returns
             if (isEthAccounts && this._state.accounts !== null) {
                 console.error(
                     `JoyId: 'eth_accounts' unexpectedly updated accounts. Please report this bug.`,

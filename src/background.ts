@@ -1,15 +1,8 @@
 import PortDuplexStream from "extension-port-stream";
-import generateUniqueId from "generate-unique-id";
 import { StreamPool } from "./streampool";
 import { StreamData } from "./typed";
 
-import {
-    JOYID_APP_URL,
-    JOYID_TEST_URL,
-    CONTENT_STREAM_NAME,
-    DEFAULT_JOYID_CONFIG,
-} from "./constant";
-import { initConfig } from "@joyid/evm";
+import { JOYID_APP_URL, JOYID_TEST_URL, CONTENT_STREAM_NAME } from "./constant";
 import { getDefaultJoyidConfig } from "./utils";
 
 function uiSetUp() {
@@ -58,7 +51,7 @@ function streamSetup(
 }
 
 function router(data: any, stream_id: string, pool: StreamPool) {
-    console.log(data);
+    console.debug(data);
     if (data === "joyid_getConfig") {
         chrome.storage.local.get("developer").then((value) => {
             const config = getDefaultJoyidConfig();
