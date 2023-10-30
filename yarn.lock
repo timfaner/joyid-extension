@@ -45,9 +45,9 @@
     micro-ftch "^0.3.1"
 
 "@joyid/evm@^0.2.0-beta.4":
-  version "0.2.0-beta.4"
-  resolved "https://registry.npmjs.org/@joyid/evm/-/evm-0.2.0-beta.4.tgz"
-  integrity sha512-VJqzhNAeCqhVb01G7GlQI2aNSF8kZHSgMXudWIwgddv3bUGkRp6D99E9dqztxD+5WcAGCUHvQvgz5DebQUaqHQ==
+  version "0.2.4"
+  resolved "https://registry.npmmirror.com/@joyid/evm/-/evm-0.2.4.tgz#3244c75415db33c6d49010856c9c60e1068f78bf"
+  integrity sha512-OayH6uQmnzGdcjiHSCpyf5gs9WSYTyKE1t1qPYxacgz2NiCjwnNDSkc0GKAHp1wGUCscKMjxoXNy/+I0/8Zweg==
 
 "@jridgewell/gen-mapping@^0.3.0":
   version "0.3.3"
