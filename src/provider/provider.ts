@@ -48,6 +48,19 @@ export class JoyIdProvider extends EventEmitter {
 
     #selectedAddress: string | null;
 
+    requestResolvers = new Map<
+        string,
+        {
+            resolve: (value: unknown) => void;
+            reject: (value: unknown) => void;
+            sendData: {
+                id: string;
+                target: string;
+                request: Required<RequestArguments>;
+            };
+        }
+    >();
+
     constructor(stream: WindowPostMessageStream) {
         super();
 
@@ -133,16 +146,17 @@ export class JoyIdProvider extends EventEmitter {
             );
         }
 
+        if (!this.#selectedAddress) {
+            let addr = await joyid.connect();
+            if (addr !== this.#selectedAddress) {
+                this._handleAccountsChanged([addr]);
+            }
+        }
+
         try {
             switch (method) {
                 case "eth_accounts":
                     return this.#selectedAddress;
-
-                case "eth_chainId":
-                    return this.#chainId;
-
-                case "net_version":
-                    return this.#networkVersion;
 
                 case "eth_requestAccounts":
                     let addr = await joyid.connect();
@@ -184,6 +198,23 @@ export class JoyIdProvider extends EventEmitter {
                         JSON.parse(typedDataInput),
                         this.#selectedAddress as string,
                     );
+
+                case "eth_sendTransaction":
+                    if (!this.#selectedAddress) {
+                        let addr = await joyid.connect();
+                        if (addr !== this.#selectedAddress) {
+                            this._handleAccountsChanged([addr]);
+                        }
+                    }
+                    let txData = (params as joyid.TransactionRequest[])[0];
+                    return await joyid.sendTransaction(
+                        txData,
+                        this.#selectedAddress as string,
+                    );
+
+                case "eth_chainId":
+                case "eth_blockNumber":
+                    this.stream.write();
 
                 // 未实现的方法现在均返回 unsupportedMethod EIP-1193 Error
                 // 打印 warning: ${method} function is not ready in joyid.
