@@ -2,7 +2,7 @@ import { EventEmitter } from "events";
 
 import { WindowPostMessageStream } from "@metamask/post-message-stream";
 
-import { StreamData } from "../typed";
+import { StreamData, RPCStreamData, RPCStreamResponse } from "../typed";
 
 import { hexlify, toUtf8Bytes, getBytes } from "ethers";
 
@@ -55,7 +55,6 @@ export class JoyIdProvider extends EventEmitter {
             reject: (value: unknown) => void;
             sendData: {
                 id: string;
-                target: string;
                 request: Required<RequestArguments>;
             };
         }
@@ -109,6 +108,48 @@ export class JoyIdProvider extends EventEmitter {
                 this._initializeState();
             }
         });
+
+        // 监听 request 返回消息
+        this.stream.on("data", (data: RPCStreamResponse) => {
+            let id;
+            let result;
+
+            if (data.type === "request") {
+                id = data.payload.id;
+                result = data.payload.result;
+                const requestResolver = this.requestResolvers.get(id);
+
+                if (!requestResolver) return;
+
+                const { sendData, reject, resolve } = requestResolver;
+
+                this.requestResolvers.delete(sendData.id);
+
+                const { method: sentMethod } = sendData.request;
+
+                if (isEIP1193Error(result)) {
+                    reject(result);
+                }
+
+                switch (sentMethod) {
+                    case "eth_chainId":
+                    case "net_version":
+                        if (
+                            typeof result === "string" &&
+                            Number(this.chainId) !== Number(result)
+                        ) {
+                            this._handleChainChanged({
+                                chainId: result,
+                                networkVersion: result,
+                            });
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                resolve(result);
+            }
+        });
     }
 
     get chainId(): string | null {
@@ -126,6 +167,8 @@ export class JoyIdProvider extends EventEmitter {
     isConnected(): boolean {
         return this._state.isConnected;
     }
+
+    private requestID = 0;
 
     /**
      * provider 主要方法，Dapp 调用 provider 的 request 方法发送请求
@@ -154,6 +197,7 @@ export class JoyIdProvider extends EventEmitter {
         }
 
         try {
+            let data: any;
             switch (method) {
                 case "eth_accounts":
                     return this.#selectedAddress;
@@ -174,13 +218,13 @@ export class JoyIdProvider extends EventEmitter {
                     }
 
                     // 输入统一转化为 Uint8Array 类型
-                    let input: string | Uint8Array = (params as string[])[0];
-                    input = input.match(/^0x[0-9A-Fa-f]*$/)
-                        ? input
-                        : hexlify(toUtf8Bytes(input));
-                    input = getBytes(input);
+                    data = (params as string[])[0];
+                    data = data.match(/^0x[0-9A-Fa-f]*$/)
+                        ? data
+                        : hexlify(toUtf8Bytes(data));
+                    data = getBytes(data);
                     return await joyid.signMessage(
-                        input,
+                        data,
                         this.#selectedAddress as string,
                     );
 
@@ -193,9 +237,9 @@ export class JoyIdProvider extends EventEmitter {
                             this._handleAccountsChanged([addr]);
                         }
                     }
-                    let typedDataInput: string = (params as string[])[1];
+                    data = (params as string[])[1];
                     return await joyid.signTypedData(
-                        JSON.parse(typedDataInput),
+                        JSON.parse(data),
                         this.#selectedAddress as string,
                     );
 
@@ -206,15 +250,70 @@ export class JoyIdProvider extends EventEmitter {
                             this._handleAccountsChanged([addr]);
                         }
                     }
-                    let txData = (params as joyid.TransactionRequest[])[0];
+                    data = (params as joyid.TransactionRequest[])[0];
                     return await joyid.sendTransaction(
-                        txData,
+                        data,
                         this.#selectedAddress as string,
                     );
 
-                case "eth_chainId":
                 case "eth_blockNumber":
-                    this.stream.write();
+                case "eth_call":
+                case "eth_estimateGas":
+                case "eth_feeHistory":
+                case "eth_gasPrice":
+                case "eth_getBalance":
+                case "eth_getBlockByHash":
+                case "eth_getBlockByNumber":
+                case "eth_getBlockTransactionCountByHash":
+                case "eth_getBlockTransactionCountByNumber":
+                case "eth_getCode":
+                case "eth_getFilterChanges":
+                case "eth_getFilterLogs":
+                case "eth_getLogs":
+                case "eth_getProof":
+                case "eth_getStorageAt":
+                case "eth_getTransactionByBlockHashAndIndex":
+                case "eth_getTransactionByBlockNumberAndIndex":
+                case "eth_getTransactionByHash":
+                case "eth_getTransactionCount":
+                case "eth_getTransactionReceipt":
+                case "eth_getUncleByBlockHashAndIndex":
+                case "eth_getUncleByBlockNumberAndIndex":
+                case "eth_getUncleCountByBlockHash":
+                case "eth_getUncleCountByBlockNumber":
+                case "eth_maxPriorityFeePerGas":
+                case "eth_newBlockFilter":
+                case "eth_newFilter":
+                case "eth_newPendingTransactionFilter":
+                case "eth_protocolVersion":
+                case "eth_sendRawTransaction":
+                case "eth_subscribe":
+                case "eth_syncing":
+                case "eth_uninstallFilter":
+                case "eth_unsubscribe":
+                case "net_listening":
+                case "net_version":
+                case "web3_clientVersion":
+                case "web3_sha3":
+                    data = {
+                        type: "rpc_request",
+                        payload: {
+                            id: this.requestID.toString(),
+                            request: {
+                                method,
+                                params,
+                            },
+                        },
+                    };
+                    this.requestID += 1;
+                    this.stream.write(data);
+                    return await new Promise<unknown>((resolve, reject) => {
+                        this.requestResolvers.set(data.payload.id, {
+                            resolve,
+                            reject,
+                            sendData: data.payload,
+                        });
+                    });
 
                 // 未实现的方法现在均返回 unsupportedMethod EIP-1193 Error
                 // 打印 warning: ${method} function is not ready in joyid.
