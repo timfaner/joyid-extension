@@ -81,6 +81,9 @@ function router(data: any, stream_id: string, pool: StreamPool) {
     } else {
         console.debug(data);
     }
+    if (data.type === "rpc_request") {
+        console.log(data);
+    }
 }
 
 function main() {
