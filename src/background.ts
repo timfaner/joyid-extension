@@ -1,6 +1,8 @@
 import PortDuplexStream from "extension-port-stream";
 import { StreamPool } from "./streampool";
-import { StreamData } from "./typed";
+import { RPCStreamResponse, StreamData } from "./typed";
+
+import { RequestManager, HTTPTransport, Client } from "@open-rpc/client-js";
 
 import {
     JOYID_APP_URL,
@@ -9,6 +11,12 @@ import {
     DEFAULT_DEVELOPER_MODE,
 } from "./constant";
 import { getDefaultJoyidConfig } from "./utils";
+
+function sendRequest(method: string, params: any) {
+    const transport = new HTTPTransport("https://eth.llamarpc.com");
+    const client = new Client(new RequestManager([transport]));
+    return client.request({ method: method, params: params });
+}
 
 function uiSetUp() {
     chrome.runtime.onInstalled.addListener(function () {
@@ -82,7 +90,28 @@ function router(data: any, stream_id: string, pool: StreamPool) {
         console.debug(data);
     }
     if (data.type === "rpc_request") {
-        console.log(data);
+        sendRequest(data.payload.request.method, data.payload.request.params)
+            .then((result) => {
+                let response: RPCStreamResponse = {
+                    type: "rpc_response",
+                    payload: {
+                        id: data.payload.id,
+                        result: result,
+                    },
+                };
+                pool.send(stream_id, response);
+            })
+            .catch((err) => {
+                let response: RPCStreamResponse = {
+                    type: "rpc_response",
+                    payload: {
+                        id: data.payload.id,
+                        error: err,
+                    },
+                };
+                pool.send(stream_id, response);
+                console.debug(err);
+            });
     }
 }
 

@@ -11,7 +11,7 @@ export interface StreamData {
     evmConfig?: EvmConfig;
 }
 
-export interface RPCStreamData {
+export interface RPCStreamRequest {
     type: string;
     payload: {
         id: string;
@@ -23,7 +23,7 @@ export interface RPCStreamResponse {
     type: string;
     payload: {
         id: string;
-        result: string;
+        result?: string;
         error?: string;
     };
 }
