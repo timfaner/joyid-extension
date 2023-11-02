@@ -2,7 +2,7 @@ import { EventEmitter } from "events";
 
 import { WindowPostMessageStream } from "@metamask/post-message-stream";
 
-import { StreamData, RPCStreamData, RPCStreamResponse } from "../typed";
+import { StreamData, RPCStreamRequest, RPCStreamResponse } from "../typed";
 
 import { hexlify, toUtf8Bytes, getBytes } from "ethers";
 
@@ -114,7 +114,7 @@ export class JoyIdProvider extends EventEmitter {
             let id;
             let result;
 
-            if (data.type === "request") {
+            if (data.type === "rpc_response") {
                 id = data.payload.id;
                 result = data.payload.result;
                 const requestResolver = this.requestResolvers.get(id);
