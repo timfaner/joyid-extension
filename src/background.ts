@@ -13,7 +13,12 @@ import {
 import { getDefaultJoyidConfig } from "./utils";
 
 function sendRequest(method: string, params: any) {
-    const transport = new HTTPTransport("https://eth.llamarpc.com");
+    const rpcurl = getDefaultJoyidConfig().rpcURL;
+
+    if (!rpcurl) {
+        throw console.error("RPC URL is empty");
+    }
+    const transport = new HTTPTransport(rpcurl);
     const client = new Client(new RequestManager([transport]));
     return client.request({ method: method, params: params });
 }

@@ -200,7 +200,7 @@ export class JoyIdProvider extends EventEmitter {
             let data: any;
             switch (method) {
                 case "eth_accounts":
-                    return this.#selectedAddress;
+                    return [this.#selectedAddress];
 
                 case "eth_requestAccounts":
                     let addr = await joyid.connect();
@@ -256,6 +256,7 @@ export class JoyIdProvider extends EventEmitter {
                         this.#selectedAddress as string,
                     );
 
+                case "eth_chainId":
                 case "eth_blockNumber":
                 case "eth_call":
                 case "eth_estimateGas":

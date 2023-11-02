@@ -41,6 +41,7 @@ export class StreamPool {
 
     //向特定id的stream发送data
     send(stream_id: string, data: any): void {
+        console.debug(data, stream_id);
         this.portStreamList.get(stream_id)?.write(data);
     }
 

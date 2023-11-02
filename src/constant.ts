@@ -19,9 +19,9 @@ export const DEFAULT_JOYID_CONFIG: EvmConfig = {
 
     // optional, config for the network you want to connect to
     network: {
-        chainId: 1,
-        name: "Ethereum Mainnet",
+        chainId: 11155111,
+        name: "Ethereum Sopelia",
     },
     // optional
-    rpcURL: "https://cloudflare-eth.com",
+    rpcURL: "https://endpoints.omniatech.io/v1/eth/sepolia/public",
 };
