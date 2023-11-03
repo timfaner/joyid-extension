@@ -77,7 +77,6 @@ function router(data: any, stream_id: string, pool: StreamPool) {
 
         chrome.storage.local.get("developer").then((value) => {
             const config = getDefaultJoyidConfig();
-
             // 正式版config写入正式版网页url
             if (!value.developer) {
                 config.joyidAppURL = JOYID_APP_URL;
