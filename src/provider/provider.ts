@@ -178,6 +178,11 @@ export class JoyIdProvider extends EventEmitter {
      *
      * @param arg - 请求参数
      */
+
+    // deprecated EIP-1193 method
+    async enable(): Promise<unknown> {
+        return this.request({ method: "eth_requestAccounts" });
+    }
     async request(arg: RequestArguments): Promise<unknown> {
         const { method, params = [] } = arg;
         if (typeof method !== "string") {
