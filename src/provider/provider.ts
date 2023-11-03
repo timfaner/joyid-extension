@@ -189,12 +189,12 @@ export class JoyIdProvider extends EventEmitter {
             );
         }
 
-        if (!this.#selectedAddress) {
-            let addr = await joyid.connect();
-            if (addr !== this.#selectedAddress) {
-                this._handleAccountsChanged([addr]);
-            }
-        }
+        // if (!this.#selectedAddress) {
+        //     let addr = await joyid.connect();
+        //     if (addr !== this.#selectedAddress) {
+        //         this._handleAccountsChanged([addr]);
+        //     }
+        // }
 
         try {
             let data: any;
