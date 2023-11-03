@@ -76,8 +76,21 @@ function router(data: any, stream_id: string, pool: StreamPool) {
         console.debug(data);
 
         chrome.storage.local.get("developer").then((value) => {
-            const config = getDefaultJoyidConfig();
+            // const config = getDefaultJoyidConfig();
+            let config = getDefaultJoyidConfig();
+            config = {
+                // your app name log
+                name: "Joyid extension",
+                logo: "https://fav.farm/🆔",
 
+                // optional, config for the network you want to connect to
+                network: {
+                    chainId: 80001,
+                    name: "Ethereum Mainnet",
+                },
+                // optional
+                rpcURL: "https://cloudflare-eth.com",
+            };
             // 正式版config写入正式版网页url
             if (!value.developer) {
                 config.joyidAppURL = JOYID_APP_URL;
